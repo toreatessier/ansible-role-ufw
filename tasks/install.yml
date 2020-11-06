@@ -1,0 +1,120 @@
+---
+- name: Add user admin
+  user:
+    name: admin
+    password: admin
+    generate_ssh_key: yes	
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+
+- name: Update sudoers
+  copy: 
+    src: "{{ role_path }}/files/sudoers"
+    dest: "{{ sudoers_path }}/sudoers"
+
+- name: Update sshd_config
+  copy: 
+    src: "{{ role_path }}/files/sshd_config"
+    dest: "{{ ssh_path }}/sshd_config"
+
+- name: Update interfaces
+  copy: 
+    src: "{{ role_path }}/files/interfaces"
+    dest: "{{ network_path }}/interfaces"
+
+- name: Installation ufw 
+  apt: 
+    name: ufw
+    state: present
+
+- name: Allow port 80 on ufw
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+ 
+- name: Allow port 210 on ufw
+  ufw:
+    rule: allow
+    port: 210
+
+- name: Allow port 443 on ufw
+  ufw:
+    rule: allow
+    port: 443
+
+- name: Allow port 22 on ufw
+  ufw:
+    rule: allow
+    port: 22
+
+- name: Installation iptables
+  apt:
+    name: iptables
+    state: present
+
+- name: Update rc-local.service
+  copy:
+    src: "{{ role_path }}/files/rc-local.service"
+    dest: "{{ system_path }}/rc-local.service"
+
+- name: Update rc.local
+  copy:
+    src: "{{ role_path }}/files/rc.local"
+    dest: "/etc/rc.local"
+
+- name: Update chmod rc.local
+  file: 
+    path: "/etc/rc.local"
+    mode: '0755'
+
+- name: Enable rc-local as a deamon
+  systemd: 
+    name: rc-local
+    enabled: yes
+
+- name: Start service rc-local
+  systemd:
+    name: rc-local
+    state: started
+
+- name: Configure forwading ipv4
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Configure forwarding ipv6
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: 1
+    sysctl_set: yes
+    state: present
+
+- name: Configure forwading ipv4
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  delegate_to: 192.168.1.86
+  remote_user: ansible
+  become: true
+
+- name: Configure forwarding ipv6
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: 1
+    sysctl_set: yes
+    state: present
+  delegate_to: 192.168.1.86
+  remote_user: ansible
+  become: true
+
+
+
+
+
